@@ -1,4 +1,4 @@
-// Firebase Config (Public only - no secrets!)
+// 🔥 Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyDfcG88fq0ziiVnJpVnQnJKPCWaoNBLc-M",
   authDomain: "justin-animation-d53a5.firebaseapp.com",
@@ -8,62 +8,102 @@ const firebaseConfig = {
   appId: "1:511036806138:web:3dd759872438685a47ca43"
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Backend URL (UPDATE THIS after deployment!)
-const API_URL = 'http://localhost:3000'; // Change to your Render URL in production
-
-// UI references
+// UI Elements
 const modal = document.getElementById("authModal");
 const title = document.getElementById("formTitle");
+
 let isLogin = true;
 
-// Show login/signup modal
-function showLogin() { modal.classList.remove("hidden"); title.innerText = "Login"; isLogin = true; }
-function showSignup() { modal.classList.remove("hidden"); title.innerText = "Sign Up"; isLogin = false; }
+// ✅ Show Login
+function showLogin() {
+  modal.classList.remove("hidden");
+  title.innerText = "Login";
+  isLogin = true;
+}
 
-// Authentication
+// ✅ Show Signup
+function showSignup() {
+  modal.classList.remove("hidden");
+  title.innerText = "Sign Up";
+  isLogin = false;
+}
+
+// ✅ Close modal when clicking outside
+window.onclick = function(e) {
+  if (e.target === modal) {
+    modal.classList.add("hidden");
+  }
+};
+
+// ✅ Authentication
 function submitAuth() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
 
+  if (!email || !password) {
+    alert("Please fill all fields");
+    return;
+  }
+
   if (isLogin) {
     auth.signInWithEmailAndPassword(email, password)
-      .then(() => alert("Login successful 🔥"))
+      .then(() => {
+        alert("Login successful 🔥");
+        modal.classList.add("hidden");
+      })
       .catch(err => alert(err.message));
   } else {
     auth.createUserWithEmailAndPassword(email, password)
-      .then(() => alert("Account created 🚀"))
+      .then(() => {
+        alert("Account created 🚀");
+        modal.classList.add("hidden");
+      })
       .catch(err => alert(err.message));
   }
 }
 
-// AI Generation - NOW CALLS SECURE BACKEND!
+// ✅ AI Image Generator
 async function generateImage() {
   const prompt = document.getElementById("prompt").value;
   const result = document.getElementById("result");
 
-  if (!prompt) { alert("Please enter a prompt!"); return; }
+  if (!prompt) {
+    alert("Please enter a prompt!");
+    return;
+  }
 
-  result.innerHTML = `<p>🎨 Generating AI animation for: "${prompt}"...</p>`;
+  // Loading message
+  result.innerHTML = `<p>Generating AI image for: "${prompt}"...</p>`;
 
   try {
-    // Call backend instead of OpenAI directly!
-    const response = await fetch(`${API_URL}/api/openai/generate`, {
+    const response = await fetch("https://justin-animation--calmiazaman.replit.app/generate", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ prompt: prompt })
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ prompt })
     });
 
     const data = await response.json();
-    
-    if (response.ok && data.url) {
-      result.innerHTML = `<img src="${data.url}" alt="Generated" style="max-width:100%; margin-top:10px; border-radius:8px;" />`;
+
+    // Debug log (optional)
+    console.log(data);
+
+    if (data.data && data.data[0].url) {
+      result.innerHTML = `
+        <img src="${data.data[0].url}" 
+             style="max-width:100%; margin-top:15px; border-radius:10px;" />
+      `;
     } else {
-      result.innerHTML = `<p>❌ Failed: ${data.error || 'Unknown error'}</p>`;
+      result.innerHTML = `<p>❌ Failed to generate image. Try again.</p>`;
     }
+
   } catch (error) {
+    console.error(error);
     result.innerHTML = `<p>❌ Error: ${error.message}</p>`;
   }
 }
